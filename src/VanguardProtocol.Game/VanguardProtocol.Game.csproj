@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>VanguardProtocol.Game</RootNamespace>
+    <ApplicationIcon />
+    <StartupObject>VanguardProtocol.Game.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VanguardProtocol.Core\VanguardProtocol.Core.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.Physics\VanguardProtocol.Physics.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.Levels\VanguardProtocol.Levels.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.Animation\VanguardProtocol.Animation.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.Rendering\VanguardProtocol.Rendering.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.Combat\VanguardProtocol.Combat.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.AI\VanguardProtocol.AI.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.Camera\VanguardProtocol.Camera.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4" />
+  </ItemGroup>
+
+</Project>

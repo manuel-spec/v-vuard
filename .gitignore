@@ -1,0 +1,57 @@
+## Build
+bin/
+obj/
+out/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.DotSettings.user
+
+## MonoGame / content
+Content/bin/
+Content/obj/
+*.mgcontent
+*.xnb
+
+## IDE
+.idea/
+*.swp
+*~
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+## OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+## Secrets / local
+.env
+.env.*
+*.local
+appsettings.*.local.json
+
+## Local planning / agent (never commit)
+.cursor/
+docs/architecture.md
+architecture.md
+
+## Test / coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+## NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+artifacts/
