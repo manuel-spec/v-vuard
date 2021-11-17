@@ -8,6 +8,7 @@ public sealed class WeaponDefinition
 {
     public required string Id { get; init; }
     public float FireIntervalSeconds { get; init; } = 0.18f;
+    public float ProjectileRadius { get; init; } = 3f;
     public float ProjectileSpeed { get; init; } = 320f;
     public int Damage { get; init; } = 1;
     public int ProjectileCount { get; init; } = 1;
