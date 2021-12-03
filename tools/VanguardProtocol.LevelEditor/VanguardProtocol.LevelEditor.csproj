@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>VanguardProtocol.LevelEditor</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VanguardProtocol.Levels\VanguardProtocol.Levels.csproj" />
+    <ProjectReference Include="..\..\src\VanguardProtocol.Physics\VanguardProtocol.Physics.csproj" />
+  </ItemGroup>
+</Project>
