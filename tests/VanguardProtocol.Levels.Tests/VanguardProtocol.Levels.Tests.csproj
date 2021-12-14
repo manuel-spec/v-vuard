@@ -11,6 +11,13 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
   <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\VanguardProtocol.Levels\VanguardProtocol.Levels.csproj" />
+    <ProjectReference Include="..\..\src\VanguardProtocol.Combat\VanguardProtocol.Combat.csproj" />
+    <ProjectReference Include="..\..\src\VanguardProtocol.AI\VanguardProtocol.AI.csproj" />
+    <ProjectReference Include="..\..\src\VanguardProtocol.Physics\VanguardProtocol.Physics.csproj" />
+    <ProjectReference Include="..\..\src\VanguardProtocol.Core\VanguardProtocol.Core.csproj" />
   </ItemGroup>
 </Project>
