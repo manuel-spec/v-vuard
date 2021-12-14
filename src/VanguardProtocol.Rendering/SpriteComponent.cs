@@ -76,6 +76,15 @@ public sealed class ParticleSystem
         };
     }
 
+    public void Burst(float x, float y, int count, uint color)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            var ang = (MathF.PI * 2f * i) / Math.Max(1, count);
+            Emit(x, y, MathF.Cos(ang) * 80f, MathF.Sin(ang) * 80f, 0.35f, color);
+        }
+    }
+
     public void Update(float dt)
     {
         for (var i = _count - 1; i >= 0; i--)

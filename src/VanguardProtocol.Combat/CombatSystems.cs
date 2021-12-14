@@ -82,6 +82,7 @@ public sealed class WeaponSystem : SystemBase
             Damage = def.Damage,
             Lifetime = def.LifetimeSeconds,
             OwnerLayer = CollisionLayer.Player,
+            Owner = owner,
         });
         world.Add(projectile, new DrawableRect(6, 3, def.ColorRgba));
         return projectile;
@@ -144,10 +145,14 @@ public sealed class ProjectileSystem : SystemBase
                 }
             }
 
-            // Hit any health entity that is not the projectile itself.
-            foreach (var (target, health) in healths)
+            // Hit hostile health entities only — never the owner or other players.
+            foreach (var (target, _) in healths)
             {
-                if (target == entity || !transforms.TryGet(target, out var targetTransform))
+                if (target == entity || target == copy.Owner)
+                    continue;
+                if (world.Has<PlayerControlled>(target) && copy.OwnerLayer == CollisionLayer.Player)
+                    continue;
+                if (!transforms.TryGet(target, out var targetTransform))
                     continue;
                 if (!world.TryGet<RigidBody>(target, out var body))
                     continue;
@@ -170,6 +175,16 @@ public sealed class ProjectileSystem : SystemBase
     }
 }
 
+public struct InvulnFrames : IComponent
+{
+    public float Remaining;
+}
+
+public struct EnemyTag : IComponent
+{
+    public int TouchDamage;
+}
+
 public sealed class DamageSystem : SystemBase
 {
     private readonly List<DamageEvent> _queue = new();
@@ -185,16 +200,34 @@ public sealed class DamageSystem : SystemBase
     public override void Update(World world, float fixedDeltaSeconds)
     {
         _dead.Clear();
-        var healths = world.GetStore<HealthComponent>();
 
+        var invuln = world.GetStore<InvulnFrames>();
+        var invulnEntities = invuln.EntitiesSpan().ToArray();
+        var invulnFrames = invuln.AsSpan().ToArray();
+        for (var i = 0; i < invulnEntities.Length; i++)
+        {
+            var entity = invulnEntities[i];
+            var next = invulnFrames[i].Remaining - fixedDeltaSeconds;
+            if (next <= 0f)
+                invuln.Remove(entity);
+            else
+                invuln.Set(entity, new InvulnFrames { Remaining = next });
+        }
+
+        var healths = world.GetStore<HealthComponent>();
         for (var i = 0; i < _queue.Count; i++)
         {
             var evt = _queue[i];
             if (!healths.TryGet(evt.Target, out var health))
                 continue;
+            if (world.Has<InvulnFrames>(evt.Target))
+                continue;
 
             health.Current = Math.Max(0, health.Current - evt.Amount);
             healths.Set(evt.Target, health);
+            if (world.Has<PlayerControlled>(evt.Target))
+                world.Add(evt.Target, new InvulnFrames { Remaining = 1.0f });
+
             if (health.Current == 0)
                 _dead.Add(evt.Target);
         }
@@ -203,9 +236,45 @@ public sealed class DamageSystem : SystemBase
 
         for (var i = 0; i < _dead.Count; i++)
         {
-            // Leave player alive for now; destroy other dead entities.
             if (!world.Has<PlayerControlled>(_dead[i]))
                 world.DestroyEntity(_dead[i]);
+        }
+    }
+}
+
+/// <summary>Player takes contact damage from tagged enemies.</summary>
+public sealed class ContactDamageSystem : SystemBase
+{
+    private readonly List<DamageEvent> _hits = new();
+
+    public override int Order => SystemOrders.Combat + 15;
+    public IReadOnlyList<DamageEvent> HitsThisTick => _hits;
+
+    public override void Update(World world, float fixedDeltaSeconds)
+    {
+        _hits.Clear();
+        var players = world.GetStore<PlayerControlled>();
+        var enemies = world.GetStore<EnemyTag>();
+        var transforms = world.GetStore<Transform>();
+
+        foreach (var (player, _) in players)
+        {
+            if (!transforms.TryGet(player, out var pt) || !world.TryGet<RigidBody>(player, out var pb))
+                continue;
+            if (world.Has<InvulnFrames>(player))
+                continue;
+
+            var playerBox = new Aabb(pt.Position.X, pt.Position.Y, pb.Size.X, pb.Size.Y);
+            foreach (var (enemy, tag) in enemies)
+            {
+                if (!transforms.TryGet(enemy, out var et) || !world.TryGet<RigidBody>(enemy, out var eb))
+                    continue;
+                var enemyBox = new Aabb(et.Position.X, et.Position.Y, eb.Size.X, eb.Size.Y);
+                if (!playerBox.Intersects(enemyBox))
+                    continue;
+                _hits.Add(new DamageEvent(player, enemy, Math.Max(1, tag.TouchDamage)));
+                break;
+            }
         }
     }
 }

@@ -60,6 +60,7 @@ public struct ProjectileComponent : IComponent
     public int Damage;
     public float Lifetime;
     public CollisionLayer OwnerLayer;
+    public Entity Owner;
 }
 
 public struct HealthComponent : IComponent
