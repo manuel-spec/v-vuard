@@ -17,9 +17,9 @@ dotnet test VanguardProtocol.sln
 dotnet run --project src/VanguardProtocol.Game
 ```
 
-**Controls:** A/D or arrows move · Space/Z jump · X / Ctrl shoot · Esc quit
+**Controls:** A/D or arrows move · Space/Z jump · X / Ctrl shoot · Esc pause
 
-Demo level includes solid tiles, one-way platforms, a slope, a walking enemy, a static dummy, and a spread-cannon pickup.
+Title → **Start Stage 1** → run right, clear walkers, reach the green **EXIT** beacon. Pause with Esc (Space resume, X title). Clear saves progress under `%LocalAppData%/VanguardProtocol/`.
 
 ---
 
@@ -75,11 +75,11 @@ docs/architecture.md             Full design document
 | 0 | Core ECS + fixed timestep + MonoGame host | Done |
 | 1 | Physics (AABB, tilemap, slopes, one-ways, determinism) | Done |
 | 2 | Animation state machines / clips | Foundation |
-| 3 | Levels (demo tilemap + loader) | Done (demo) |
+| 3 | Levels (Stage 1 Vale Outpost + content packs) | Stage 1 playable |
 | 4 | Combat (weapons, projectiles, damage, pickups) | Playable |
-| 5 | AI (behavior tree + walker) | Foundation |
-| 6 | Camera / rendering juice | Foundation |
-| 7–16 | Bosses, UI, editor, netcode, content, polish | Not started |
+| 5 | AI (behavior tree + walker) | Wired in Stage 1 |
+| 6 | Camera / HUD / audio / save / pause | Wired in Game host |
+| 7–16 | Bosses, editor, full campaign, netcode in-session | In progress |
 
 ---
 

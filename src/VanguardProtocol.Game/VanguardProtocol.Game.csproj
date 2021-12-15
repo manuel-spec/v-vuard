@@ -19,6 +19,9 @@
     <ProjectReference Include="..\VanguardProtocol.Combat\VanguardProtocol.Combat.csproj" />
     <ProjectReference Include="..\VanguardProtocol.AI\VanguardProtocol.AI.csproj" />
     <ProjectReference Include="..\VanguardProtocol.Camera\VanguardProtocol.Camera.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.UI\VanguardProtocol.UI.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.Audio\VanguardProtocol.Audio.csproj" />
+    <ProjectReference Include="..\VanguardProtocol.SaveSystem\VanguardProtocol.SaveSystem.csproj" />
   </ItemGroup>
 
   <ItemGroup>
