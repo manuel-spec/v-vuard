@@ -19,7 +19,7 @@ dotnet run --project src/VanguardProtocol.Game
 
 **Controls:** A/D or arrows move · Space/Z jump · X / Ctrl shoot · Esc pause
 
-Title → **Start Stage 1** → run right, clear walkers, reach the green **EXIT** beacon. Pause with Esc (Space resume, X title). Clear saves progress under `%LocalAppData%/VanguardProtocol/`.
+Title → **Continue** / **Stage Select** (25 campaign stages) → reach the green **EXIT**. Clear unlocks the next stage and saves under `%LocalAppData%/VanguardProtocol/`. Stages 2–25 are playable adaptations of arenas 1–24.
 
 ---
 

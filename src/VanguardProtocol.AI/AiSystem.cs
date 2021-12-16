@@ -49,6 +49,31 @@ public static class TurretBehavior
     }
 }
 
+/// <summary>Horizontal hover patrol with no gravity (RigidBody.AffectedByGravity = false).</summary>
+public static class FlyerHoverBehavior
+{
+    public static BehaviorNode Create(float speed = 55f, float leftBound = 40f, float rightBound = 400f)
+    {
+        var direction = 1f;
+        return new ActionNode((world, entity, _) =>
+        {
+            if (!world.TryGet<Transform>(entity, out var transform) ||
+                !world.TryGet<Velocity>(entity, out var velocity))
+                return BehaviorStatus.Failure;
+
+            if (transform.Position.X <= leftBound)
+                direction = 1f;
+            else if (transform.Position.X >= rightBound)
+                direction = -1f;
+
+            velocity.Value.X = DeterministicMath.Quantize(direction * speed);
+            velocity.Value.Y = 0f;
+            world.GetStore<Velocity>().Set(entity, velocity);
+            return BehaviorStatus.Running;
+        });
+    }
+}
+
 public sealed class AiSystem : SystemBase
 {
     public override int Order => SystemOrders.Ai;

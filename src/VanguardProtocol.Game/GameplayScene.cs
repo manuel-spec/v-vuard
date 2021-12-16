@@ -61,6 +61,8 @@ public sealed class GameplayScene : IScene
     private int _score;
     private float _clearTimer;
     private float _bannerPulse;
+    private int _stageIndex = 1;
+    private bool _requestNext;
     private int _lastProjectileCount;
     private bool _wasOnGround = true;
 
@@ -73,21 +75,33 @@ public sealed class GameplayScene : IScene
         _scores = new HighScoreTable(save);
         _pixel = new Texture2D(graphicsDevice, 1, 1);
         _pixel.SetData([XnaColor.White]);
-        LoadLevel(Stage01ValeOutpost.Build());
+        LoadStage(1);
     }
 
     public string Name => _level.Name;
+    public string StageTitle { get; private set; } = CampaignRoster.Get(1).Title;
+    public int StageIndex => _stageIndex;
     public RunState State { get; private set; } = RunState.Playing;
     public bool RequestTitle { get; private set; }
+    public bool RequestNextStage => _requestNext;
 
     public void Enter()
     {
         RequestTitle = false;
+        _requestNext = false;
         State = RunState.Playing;
     }
 
     public void Exit()
     {
+    }
+
+    public void LoadStage(int stageIndex)
+    {
+        var stage = CampaignRoster.Get(stageIndex);
+        _stageIndex = stage.Index;
+        StageTitle = stage.Title;
+        LoadLevel(stage.Build());
     }
 
     public void LoadLevel(LevelData level)
@@ -169,6 +183,13 @@ public sealed class GameplayScene : IScene
                 var right = ParseFloat(spawn, "right", spawn.X + 40);
                 SpawnWalker(world, spawn.X, spawn.Y, left, right, hp);
             }
+            else if (type == "flyer")
+            {
+                var hp = ParseInt(spawn, "hp", 1);
+                var left = ParseFloat(spawn, "left", spawn.X - 60);
+                var right = ParseFloat(spawn, "right", spawn.X + 60);
+                SpawnFlyer(world, spawn.X, spawn.Y, left, right, hp);
+            }
             else if (type == "pickup_weapon")
             {
                 SpawnWeaponPickup(world, spawn.X, spawn.Y, spawn.Properties?.GetValueOrDefault("weapon") ?? "spread_cannon");
@@ -197,6 +218,19 @@ public sealed class GameplayScene : IScene
         world.Add(enemy, new HealthComponent(Math.Max(1, hp)));
         world.Add(enemy, new EnemyTag { TouchDamage = 1 });
         world.Add(enemy, new AiControlled { Root = WalkerBehavior.Create(45f, left, right) });
+    }
+
+    private static void SpawnFlyer(World world, float x, float y, float left, float right, int hp)
+    {
+        var enemy = world.CreateEntity();
+        var size = new Vector2(18, 14);
+        world.Add(enemy, new Transform(new Vector2(x, y)));
+        world.Add(enemy, new Velocity(Vector2.Zero));
+        world.Add(enemy, new RigidBody(size, affectedByGravity: false));
+        world.Add(enemy, new DrawableRect(size.X, size.Y, 0xFFE0A040));
+        world.Add(enemy, new HealthComponent(Math.Max(1, hp)));
+        world.Add(enemy, new EnemyTag { TouchDamage = 1 });
+        world.Add(enemy, new AiControlled { Root = FlyerHoverBehavior.Create(55f, left, right) });
     }
 
     private static void SpawnWeaponPickup(World world, float x, float y, string weaponId)
@@ -235,7 +269,15 @@ public sealed class GameplayScene : IScene
 
         if (State == RunState.Cleared)
         {
-            if (frame.WasPressed(InputButtons.Jump) || frame.WasPressed(InputButtons.Shoot))
+            if (frame.WasPressed(InputButtons.Jump))
+            {
+                if (CampaignRoster.TryGetNext(_level.Name, out _))
+                    _requestNext = true;
+                else
+                    RequestTitle = true;
+                _sfx.Play("ui");
+            }
+            else if (frame.WasPressed(InputButtons.Shoot))
             {
                 RequestTitle = true;
                 _sfx.Play("ui");
@@ -429,7 +471,10 @@ public sealed class GameplayScene : IScene
         _clearTimer = 0f;
         _sfx.Play("clear");
         _progress.Unlock(_level.Name);
-        _progress.UnlockNext(_level.Name);
+        if (CampaignRoster.TryGetNext(_level.Name, out var next))
+            _progress.Unlock(next.Id);
+        else
+            _progress.UnlockNext(_level.Name);
         _scores.TrySubmit(_level.Name, _score);
         try
         {
@@ -560,6 +605,7 @@ public sealed class GameplayScene : IScene
 
         TinyFont.Draw(_spriteBatch, _pixel, $"LIVES {_lives}", 100, 8, new XnaColor(220, 220, 220), 2);
         TinyFont.Draw(_spriteBatch, _pixel, $"SCORE {_score}", 220, 8, new XnaColor(220, 220, 180), 2);
+        TinyFont.Draw(_spriteBatch, _pixel, $"S{_stageIndex}", 360, 8, new XnaColor(140, 200, 255), 2);
 
         if (world.TryGet<WeaponComponent>(_player, out var weapon) && weapon.Definition is not null)
         {
@@ -582,9 +628,19 @@ public sealed class GameplayScene : IScene
         else if (State == RunState.Cleared)
         {
             DrawRect(0, 0, 640, 360, new XnaColor(0, 20, 0) * 0.45f);
-            TinyFont.Draw(_spriteBatch, _pixel, "STAGE CLEAR", 210, 130, new XnaColor(120, 255, 160), 3);
-            TinyFont.Draw(_spriteBatch, _pixel, $"SCORE {_score}", 250, 180, XnaColor.White, 2);
-            TinyFont.Draw(_spriteBatch, _pixel, "PRESS SPACE", 240, 220, new XnaColor(220, 220, 220), 2);
+            TinyFont.Draw(_spriteBatch, _pixel, "STAGE CLEAR", 210, 120, new XnaColor(120, 255, 160), 3);
+            TinyFont.Draw(_spriteBatch, _pixel, $"SCORE {_score}", 250, 165, XnaColor.White, 2);
+            if (CampaignRoster.TryGetNext(_level.Name, out var next))
+            {
+                TinyFont.Draw(_spriteBatch, _pixel, "SPACE NEXT STAGE", 210, 205, new XnaColor(220, 220, 220), 2);
+                TinyFont.Draw(_spriteBatch, _pixel, next.Title.ToUpperInvariant(), 200, 235, new XnaColor(140, 200, 255), 2);
+                TinyFont.Draw(_spriteBatch, _pixel, "X TITLE", 270, 265, new XnaColor(180, 180, 180), 2);
+            }
+            else
+            {
+                TinyFont.Draw(_spriteBatch, _pixel, "CAMPAIGN COMPLETE", 190, 210, new XnaColor(255, 220, 120), 2);
+                TinyFont.Draw(_spriteBatch, _pixel, "PRESS SPACE", 240, 250, new XnaColor(220, 220, 220), 2);
+            }
         }
         else if (State == RunState.GameOver)
         {
